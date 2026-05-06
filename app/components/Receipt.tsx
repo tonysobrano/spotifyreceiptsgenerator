@@ -1,42 +1,45 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { SpotifyTrack, TimeRange, TopTracksResponse } from '../types';
 
-const TIME_RANGES = [
+const TIME_RANGES: { value: TimeRange; label: string }[] = [
   { value: 'short_term', label: 'Last Month' },
   { value: 'medium_term', label: 'Last 6 Months' },
   { value: 'long_term', label: 'All Time' },
 ];
 
-function formatMs(ms) {
+function formatMs(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function totalDuration(tracks) {
+function totalDuration(tracks: SpotifyTrack[]): string {
   const ms = tracks.reduce((sum, t) => sum + t.duration_ms, 0);
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
+      .toString()
+      .padStart(2, '0')}`;
   }
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 export default function Receipt() {
-  const [range, setRange] = useState('short_term');
-  const [tracks, setTracks] = useState([]);
+  const [range, setRange] = useState<TimeRange>('short_term');
+  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [orderNumber] = useState(() =>
+  const [error, setError] = useState<string | null>(null);
+  const [orderNumber] = useState<string>(() =>
     Math.floor(1000 + Math.random() * 9000).toString()
   );
-  const [now] = useState(() => new Date());
-  const receiptRef = useRef(null);
+  const [now] = useState<Date>(() => new Date());
+  const receiptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,15 +54,15 @@ export default function Receipt() {
           }
           throw new Error('Failed to fetch tracks');
         }
-        const data = await res.json();
+        const data = (await res.json()) as TopTracksResponse;
         if (!cancelled) {
-          setTracks(data.items || []);
+          setTracks(data.items ?? []);
           setLoading(false);
         }
       })
-      .catch((e) => {
+      .catch((e: unknown) => {
         if (!cancelled) {
-          setError(e.message);
+          setError(e instanceof Error ? e.message : 'Unknown error');
           setLoading(false);
         }
       });
@@ -81,7 +84,7 @@ export default function Receipt() {
     link.click();
   };
 
-  const rangeLabel = TIME_RANGES.find((r) => r.value === range)?.label;
+  const rangeLabel = TIME_RANGES.find((r) => r.value === range)?.label ?? '';
 
   const dateStr = now.toLocaleDateString('en-US', {
     month: '2-digit',
@@ -146,9 +149,7 @@ export default function Receipt() {
                 <li key={t.id ?? i}>
                   <div className="flex">
                     <span className="w-6">{String(i + 1).padStart(2, '0')}.</span>
-                    <span className="flex-1 pr-2 break-words uppercase">
-                      {t.name}
-                    </span>
+                    <span className="flex-1 pr-2 break-words uppercase">{t.name}</span>
                     <span>{formatMs(t.duration_ms)}</span>
                   </div>
                   <div className="pl-6 text-[10px] opacity-75 uppercase">
@@ -173,7 +174,9 @@ export default function Receipt() {
 
             <div className="text-center text-xs">
               <p>CARD #: **** **** **** {orderNumber}</p>
-              <p className="mt-2">AUTH CODE: {orderNumber}00{Math.floor(Math.random() * 90 + 10)}</p>
+              <p className="mt-2">
+                AUTH CODE: {orderNumber}00{Math.floor(Math.random() * 90 + 10)}
+              </p>
               <p className="mt-3">THANK YOU FOR LISTENING</p>
             </div>
           </div>

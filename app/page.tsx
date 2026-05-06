@@ -1,5 +1,4 @@
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import Receipt from './components/Receipt';
 
 export default async function Home() {

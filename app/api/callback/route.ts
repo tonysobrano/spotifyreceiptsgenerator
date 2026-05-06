@@ -1,6 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request) {
+interface SpotifyTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token?: string;
+  scope: string;
+}
+
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const state = searchParams.get('state');
@@ -21,6 +29,10 @@ export async function GET(request) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
   const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    return new NextResponse('Spotify env vars not configured', { status: 500 });
+  }
 
   const basic = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
@@ -44,7 +56,7 @@ export async function GET(request) {
     );
   }
 
-  const tokenData = await tokenRes.json();
+  const tokenData = (await tokenRes.json()) as SpotifyTokenResponse;
   const { access_token, expires_in } = tokenData;
 
   const res = NextResponse.redirect(`${origin}/`);
