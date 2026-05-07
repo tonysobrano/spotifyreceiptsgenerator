@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   const state = randomBytes(16).toString('hex');
-  const scope = 'user-top-read';
+  const scope = 'user-top-read user-read-private';
 
   const params = new URLSearchParams({
     response_type: 'code',

@@ -5,9 +5,12 @@ module.exports = {
     extend: {
       colors: {
         paper: '#f5f1e8',
+        ink: '#1a1a1a',
+        'ink-faded': '#3a3a3a',
       },
       fontFamily: {
-        mono: ['"Courier New"', 'Courier', 'monospace'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
+        display: ['var(--font-display)', 'ui-monospace', 'monospace'],
       },
     },
   },
